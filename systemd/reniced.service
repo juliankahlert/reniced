@@ -1,0 +1,32 @@
+[Unit]
+Description=Reniced Service
+Documentation=https://juliankahlert.github.io/reniced
+
+[Service]
+ExecStart=/usr/bin/reniced
+StandardOutput=journal
+StandardError=journal
+Restart=on-failure
+RestartSec=5s
+
+# Run the service with the necessary capabilities
+AmbientCapabilities=CAP_SYS_NICE
+SecureBits=keep-caps
+NoNewPrivileges=true
+
+# Ensure the service is not killed by the OOM killer
+OOMScoreAdjust=-1000
+
+# Hardening options
+ProtectSystem=full
+PrivateTmp=true
+RestrictRealtime=true
+RestrictAddressFamilies=AF_UNIX
+MemoryDenyWriteExecute=true
+# Give access to user configs in their home dirs.
+# Set to `true` if only global config shall be used.
+# ProtectHome=true
+ProtectHome=false
+
+[Install]
+WantedBy=default.target

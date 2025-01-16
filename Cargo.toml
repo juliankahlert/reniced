@@ -1,0 +1,56 @@
+[package]
+name = "reniced"
+version = "0.1.0"
+edition = "2021"
+description = "A daemon to monitor and adjust nice values of processes based on configuration"
+license = "MIT"
+
+
+[dependencies]
+nix = { version = "0.29.0", features = ["inotify", "process", "user"] }
+
+clap = { version = "4.3", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
+tracing-journald = "0.3.1"
+procfs = "0.17.0"
+tokio = { version = "1.42.0", features = ["full"] }
+anyhow = "1.0"
+whoami = "1.5.2"
+atty = "0.2"
+#derive_more = { version = "1.0.0", features = ["display"] }
+
+[package.metadata.generate-rpm]
+name = "reniced"
+version = "0.1.0"
+license = "MIT"
+summary = "A daemon to monitor and adjust nice values of processes based on configuration"
+url = "https://example.com"  # Replace with your URL
+
+assets = [
+    { source = "target/release/reniced", dest = "/usr/bin/reniced", mode = "755" },
+    { source = "systemd/reniced.service", dest = "/usr/lib/systemd/system/reniced.service", mode = "644" }
+]
+
+# Post-install script to set capabilities and enable service
+post_install_script = """
+setcap cap_sys_nice=eip /usr/bin/reniced
+
+systemctl daemon-reload
+systemctl enable reniced.service
+systemctl start reniced.service
+"""
+post_install_script_flags = 0b001 # Expands macro
+
+# Post-uninstallation script to remove the service and clean up
+post_uninstall_script = """
+systemctl daemon-reload
+systemctl stop reniced.service
+systemctl disable reniced.service
+systemctl daemon-reload
+"""
+
+post_uninstall_script_flags = 0b001 # Expands macro
+
